@@ -1,0 +1,4 @@
+@EndUserText.label: 'Service Definition'
+define service ZVGC_SD_TEST_CADCALL {
+  expose ZVGC_CDS_CADCALL;
+}
