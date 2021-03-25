@@ -25,10 +25,10 @@ CLASS zvgc_cl_test_cadcall IMPLEMENTATION.
             ex_time      TYPE string,
             lt_data      TYPE STANDARD TABLE OF zvgc_cds_cadcall.
 
-      "DATA(lv_offset) = io_request->get_paging( )->get_offset( ).
-      "DATA(lv_page_size) = io_request->get_paging( )->get_page_size( ).
-      "DATA(lv_max_rows) = COND #( WHEN lv_page_size = if_rap_query_paging=>page_size_unlimited THEN 0
-      "                            ELSE lv_page_size ).
+      DATA(lv_offset) = io_request->get_paging( )->get_offset( ).
+      DATA(lv_page_size) = io_request->get_paging( )->get_page_size( ).
+      DATA(lv_max_rows) = COND #( WHEN lv_page_size = if_rap_query_paging=>page_size_unlimited THEN 0
+                                  ELSE lv_page_size ).
 
       TRY.
           CALL FUNCTION 'ZVGC_FM_TEST_CADCALL'
