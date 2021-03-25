@@ -24,7 +24,7 @@ CLASS zvgc_cl_test_cadcall IMPLEMENTATION.
     DATA: ex_time_zone TYPE string,
           ex_date      TYPE string,
           ex_time      TYPE string,
-          lt_data      TYPE STANDARD TABLE OF zvgc_cds_cadcall.
+          lt_data      TYPE TABLE OF zvgc_cds_cadcall.
 
     TRY.
         CALL FUNCTION 'ZVGC_FM_TEST_CADCALL'
@@ -40,19 +40,43 @@ CLASS zvgc_cl_test_cadcall IMPLEMENTATION.
     ENDTRY.
 
 
-    IF io_request->is_data_requested( ).
+    CASE io_request->get_entity_id( ).
 
-      DATA(lv_offset)    = io_request->get_paging( )->get_offset( ).
-      DATA(lv_page_size) = io_request->get_paging( )->get_page_size( ).
-      DATA(lv_max_rows)  = COND #( WHEN lv_page_size = if_rap_query_paging=>page_size_unlimited THEN 0
-                                   ELSE lv_page_size ).
+      WHEN 'ZVGC_CDS_CADCALL' .
 
-      io_response->set_total_number_of_records( lines( lt_data ) ).
-      io_response->set_data( lt_data ).
+        DATA(lv_search_string) = io_request->get_search_expression( ).
+        DATA(lv_search_sql) = |DESCRIPTION LIKE '%{ cl_abap_dyn_prg=>escape_quotes( lv_search_string ) }%'|.
 
-    ELSEIF io_request->is_total_numb_of_rec_requested( ).
-      io_response->set_total_number_of_records( lines( lt_data ) ).
-    ENDIF.
+
+        IF io_request->is_data_requested( ).
+
+          DATA(lv_top)           = io_request->get_paging( )->get_page_size( ).
+          DATA(lv_skip)          = io_request->get_paging( )->get_offset( ).
+          DATA(lt_clause)        = io_request->get_filter( )->get_as_sql_string( ).
+          DATA(lt_fields)        = io_request->get_requested_elements( ).
+          DATA(lt_sort)          = io_request->get_sort_elements( ).
+
+          DATA(lv_max_rows)  = COND #( WHEN lv_top = if_rap_query_paging=>page_size_unlimited THEN 0
+                                       ELSE lv_top ).
+
+          TRY.
+              DATA(lt_filter_cond) = io_request->get_filter( )->get_as_ranges( ).
+            CATCH cx_rap_query_filter_no_range INTO DATA(lx_no_sel_option).
+          ENDTRY.
+
+          io_response->set_total_number_of_records( lines( lt_data ) ).
+          io_response->set_data( lt_data ).
+
+        ELSEIF io_request->is_total_numb_of_rec_requested( ).
+
+          io_response->set_total_number_of_records( lines( lt_data ) ).
+
+        ENDIF.
+
+      WHEN OTHERS.
+
+    ENDCASE.
+
 
   ENDMETHOD.
 ENDCLASS.
