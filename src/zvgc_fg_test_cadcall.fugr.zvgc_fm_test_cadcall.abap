@@ -10,6 +10,6 @@ FUNCTION zvgc_fm_test_cadcall.
 *"----------------------------------------------------------------------
   ex_time_zone = cl_abap_context_info=>get_user_time_zone( ).
   ex_date = cl_abap_context_info=>get_system_date( ).
-  ex_time = cl_abap_context_info=>get_system_time( ).
+  ex_time = cl_abap_context_info=>get_system_time(  ).
 
 ENDFUNCTION.
