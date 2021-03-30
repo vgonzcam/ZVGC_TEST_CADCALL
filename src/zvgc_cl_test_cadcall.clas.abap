@@ -20,13 +20,13 @@ CLASS zvgc_cl_test_cadcall IMPLEMENTATION.
     " Info:
     " Casos para estudiar...
 
-    TYPES: t_header    TYPE HASHED TABLE OF zvgc_t_cadcall_h
-             WITH UNIQUE KEY header_id.
-    TYPES: t_items    TYPE HASHED TABLE OF zvgc_t_cadcall_i
-         WITH UNIQUE KEY header_id pos_id.
+    TYPES: t_header    TYPE HASHED TABLE OF zvgc_cds_cadcall_h
+             WITH UNIQUE KEY HeaderId.
+    TYPES: t_items    TYPE HASHED TABLE OF zvgc_cds_cadcall_i
+         WITH UNIQUE KEY HeaderId PosId.
     TYPES :BEGIN OF MESH mh_data,
              header TYPE t_header
-                      ASSOCIATION _Item TO header ON header_id = header_id,
+                      ASSOCIATION _Item TO items ON HeaderId = HeaderId,
              items  TYPE t_items,
            END OF MESH mh_data.
     DATA: lt_mesh TYPE mh_data.
@@ -88,23 +88,33 @@ CLASS zvgc_cl_test_cadcall IMPLEMENTATION.
 
       WHEN 'ZVGC_CDS_CADCALL_H'.
 
-        SELECT * FROM zvgc_cds_cadcall_h INTO TABLE @DATA(lit_cds_h).
-        SELECT * FROM zvgc_t_cadcall_h
-                         INTO TABLE @lt_mesh-header.
+        SELECT * FROM zvgc_cds_cadcall_h INTO TABLE @lt_mesh-header.
+        SELECT \_item-headerid ,    \_item-posid,
+               \_item-servcode ,    \_item-servdescr,
+               \_item-itemstatus,   \_item-partcost,
+               \_item-labourcode,   \_item-labourcat,
+               \_item-labstarttime, \_item-labendtime
+          FROM zvgc_cds_cadcall_h INTO TABLE @lt_mesh-items.
+
+        DATA(lt_h_f) = lt_mesh-header\_Item[ lt_mesh-header[ HeaderId = '0000000001' ] ].
         io_response->set_total_number_of_records( lines( lt_mesh-header ) ).
 
-        io_response->set_data( lit_cds_h ).
+        DATA: lt_h TYPE STANDARD TABLE OF zvgc_T_cadcall_h.
+        lt_h = VALUE #( FOR line IN lt_mesh-header ( CORRESPONDING #( line  ) ) ).
+
+
+        io_response->set_data(  lt_h ).
 
 
       WHEN 'ZVGC_CDS_CADCALL_I'.
 
         SELECT * FROM zvgc_cds_cadcall_i INTO TABLE @DATA(lit_cds_i).
         SELECT * FROM zvgc_t_cadcall_i
-                 INTO TABLE @lt_mesh-items.
+                 INTO TABLE @DATA(lt_i).
 
         io_response->set_total_number_of_records( lines( lt_mesh-items ) ).
 
-        io_response->set_data( lit_cds_i ).
+        io_response->set_data( lt_i ).
 
 
       WHEN OTHERS.
